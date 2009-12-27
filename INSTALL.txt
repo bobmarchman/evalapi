@@ -10,7 +10,7 @@ CONTENTS OF THIS FILE
 INSTALLATION
 ------------
 
-1. ENABLE MODULE 
+1. ENABLE MODULE
   
    * Go to Administer > Site Building > Modules
    * Enable the Eval API module and any of its required dependencies.
@@ -31,14 +31,14 @@ CONFIGURATION
 2. CONFIGURE PERMISSIONS
   
    * Go to Administer > User Management > Permissions
-   * Enable permissions for any user roles that will be using the Eval API 
+   * Enable permissions for any user roles that will be using the Eval API
      module.
    
 3. OPTIONALLY CONFIGURE CONTENT TYPE EVAL API SETTINGS
   
    * Go to Administer > Content Management > Content Types
    * Click 'edit' for the Eval API enabled content type you wish to configure.
-   * On the content type's edit form, there will be a fieldset named 
+   * On the content type's edit form, there will be a fieldset named
      Eval API Settings.
 
 
