@@ -1,0 +1,117 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ *   Install/Uninstall tasks for the Eval API module.
+ */
+
+
+
+
+
+/**
+ * Implementation of hook_install().
+ */
+function evalapi_install() {
+  drupal_install_schema('evalapi');
+
+  db_query("UPDATE {system} SET weight = 1 WHERE name = 'evalapi'");
+  
+  drupal_set_message(st("Eval API installed successfully. Settings are available under !link",
+    array('!link' => l('Administer > Site configuration > Eval API Configuration ', 'admin/settings/evalapi'))
+  ));  
+}
+
+
+
+
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function evalapi_uninstall() {
+  drupal_uninstall_schema('evalapi');
+  
+  db_query("DELETE FROM {variable} WHERE name LIKE '%s_%%'", 'evalapi');
+  db_query("DELETE FROM {trigger_assignments} WHERE aid LIKE '%s_%%'", 'evalapi');  
+  db_query("DELETE FROM {actions} WHERE aid LIKE '%s_%%'", 'evalapi');
+}
+
+
+
+
+
+/**
+ * Implementation of hook_schema().
+ */
+function evalapi_schema() {
+  $schema['evalapi'] = array(
+    'description' => 'Table for Eval API node settings.',
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'The {node}.nid of the node storing Eval API data for this record.', 
+      ),
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The current {node_revisions}.vid version identifier for this node.',
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The {users}.uid for the user creating or modifying this record.',
+      ),      
+      'code' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+        'description' => 'This node’s Eval API PHP code that is to be evaluated.',
+      ),
+      'handler' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '_evalapi_default_handler',
+        'description' => 'The evaluation handler for this specific node',
+      ),
+      'overrides' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+        'description' => 'A serialized array representing Eval API values that have been overridden for this specific node.',
+      ),
+      'created' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The Unix timestamp when this record was created.',
+      ),
+      'changed' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The Unix timestamp when this record was last updated.',
+      ),
+    ),
+    'indexes' => array(
+      'nid' => array('nid'),
+      'changed' => array('changed'),
+      'created' => array('created'),
+      'uid' => array('uid'),      
+    ),
+    'unique keys' => array(
+      'vid' => array('vid'),
+    ),
+    'primary key' => array('nid'),    
+  );
+
+  return $schema;
+}

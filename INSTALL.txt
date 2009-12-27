@@ -1,0 +1,48 @@
+$Id
+
+CONTENTS OF THIS FILE
+---------------------
+
+ * Installation
+ * Configuration
+ * More Information
+
+INSTALLATION
+------------
+
+1. ENABLE MODULE 
+  
+   * Go to Administer > Site Building > Modules
+   * Enable the Eval API module and any of its required dependencies.
+
+CONFIGURATION
+-------------
+
+1. ENABLE CONTENT TYPES TO USE EVAL API
+  
+   * Go to Administer > Site Configuration > Eval API Configuration
+   * Enable content types that you wish to use with the Eval API module.
+   * Select a default evaluation handler.
+   * Enable/Disable debugging mode.
+   * If Admin module is installed and enabled:
+       - Enable/Disable Eval API's node form settings to use the Admin module's
+         node form sidebar.
+
+2. CONFIGURE PERMISSIONS
+  
+   * Go to Administer > User Management > Permissions
+   * Enable permissions for any user roles that will be using the Eval API 
+     module.
+   
+3. OPTIONALLY CONFIGURE CONTENT TYPE EVAL API SETTINGS
+  
+   * Go to Administer > Content Management > Content Types
+   * Click 'edit' for the Eval API enabled content type you wish to configure.
+   * On the content type's edit form, there will be a fieldset named 
+     Eval API Settings.
+
+
+MORE INFORMATION
+----------------
+
+See README.txt for usage and configuration instructions and examples.

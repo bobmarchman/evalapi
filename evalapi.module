@@ -1,0 +1,472 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ *   The Eval API module.
+ */
+
+
+
+
+
+/**
+ * Implementation of hook_init().
+ */
+function evalapi_init() {
+  module_load_include('inc', 'evalapi', 'includes/evalapi.api');
+}
+
+
+
+
+
+/**
+ * Implementation of hook_help().
+ *
+ * @see hook_evalapi()
+ * @see hook_CONTENT_TYPE_NAME_evalapi()
+ * @see hook_evalapi_alter()
+ * @see hook_CONTENT_TYPE_NAME_evalapi_alter()
+ * @see hook_evalapi_handler()
+ * @see hook_evalapi_handler_alter() 
+ */
+function evalapi_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#evalapi':
+      $output  = '<h3>'. t('About') .'</h3>';
+      $output .= '<p>'. t('The Eval API module provides an API that facilitates the adding of arbitrary criteria to content types and nodes that can be evaluated as seen fit by the implementing module.') .'</p>';
+      $output .= '<h3>'. t('Uses') .'</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>'. t('Node Restrictions/Validation') .'</dt>';
+      $output .= '<dd>'. t('TODO: Describe') .'</dd>';
+      $output .= '<dt>'. t('Eligibility Validation') .'</dt>';
+      $output .= '<dd>'. t('Modules can use the Eval API module to add custom rules to nodes and node types that can be used to determine if users are eligible to view nodes or nodes of a specific type.') .'</dd>';
+      $output .= '<dt>'. t('Complex User Stories') .'</dt>';
+      $output .= '<dd>'. t('TODO: Describe') .'</dd>';
+      $output .= '</dl>';
+      
+      return $output;
+
+      
+    case 'admin/settings/evalapi':
+      $output  = '<p>'. t('Enable some content types to begin using the Eval API.') .'</p>';
+      $output .= '<p>'. t('If you have installed and enabled any modules that provide their own Eval API evaluation handler(s), you may choose to override the default handler.') .'</p>';
+      $output .= '<p>'. t('If you have installed and enabled the Admin module, you can also configure Eval API-specific Admin module options.') .'</p>';
+      $output .= '<p>'. t('For developers, a debugging mode is available which simply prints out an enabled node’s evaluation criteria array.') .'</p>';
+      $output .= '<p>'. t('See this module’s README.txt and API.txt for more information.') .'</p>';
+      
+      return $output;
+  }
+}
+
+
+
+
+
+/**
+ * Implementation of hook_perm().
+ */
+function evalapi_perm() {
+  return array('use php for evaluation criteria', 'administrate eval api');
+}
+
+
+
+
+
+/**
+ * Implementation of hook_menu().
+ *
+ * @see evalapi_admin_settings_form()
+ */
+function evalapi_menu() {
+  $items = array();
+
+  $items['admin/settings/evalapi'] = array(
+    'title' => 'Eval API Configuration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('evalapi_admin_settings_form'),
+    'access arguments' => array('administer nodes'),
+    'file' => 'includes/evalapi.admin.inc',
+  );
+
+  return $items;
+}
+
+
+
+
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function evalapi_form_alter(&$form, $form_state, $form_id) {
+  // modify an Eval API-enabled node’s admin add/edit form to include a custom PHP code field
+  if (isset($form['type']) && $form['type']['#value'] .'_node_form' == $form_id) {
+    if (_evalapi_is_enabled_content_type($form['type']['#value'])) {
+      $form['evalapi'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Eval API'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,   
+      );
+      
+      if (user_access('use php for evaluation criteria')) {
+        $form['evalapi']['evalapi_eval_code'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('PHP Code'),
+          '#description' => t('Include PHP code to add custom evaluation criteria for this specific node.'),
+          '#collapsible' => TRUE,
+          '#collapsed' => TRUE,
+        );
+  
+        $form['evalapi']['evalapi_eval_code']['evalapi_code'] = array(
+          '#type' => 'textarea',
+          '#title' => t('Code'),
+          '#description' => '<p>'. t('You should <strong>NOT</strong> include &lt;?php ?&gt; tags. Code is expected to return a keyed array like the following: ') .'</p>
+<pre>
+  return array(
+    \'foo\' =&gt; TRUE,
+    \'bar\' =&gt; FALSE,
+  );
+</pre>',
+          '#default_value' => _evalapi_get_node_eval_code($form['#node']),
+        );        
+      }
+      
+      $form['evalapi']['evalapi_eval_handler'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Override Evaluation Handler'),
+        '#description' => t('You can choose to override the default evaluation handler for this specific node.'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,        
+      );
+      
+      $handlers = _evalapi_process_handlers();
+      
+      $form['evalapi']['evalapi_eval_handler']['evalapi_handler'] = array(
+        '#type' => 'select',
+        '#title' => t('Choose Handler'),
+        '#options' => $handlers,
+        '#default_value' => _evalapi_get_node_eval_handler($form['#node']),
+      );      
+
+
+      
+      // if we are editing a node, not creating…
+      if (!empty($form['nid']['#value'])) {
+        $form['#submit'][] = '_evalapi_process_node_overrides';
+        
+        $eval_criteria = _evalapi_evaluate($form['#node'], TRUE);
+        
+        $form['evalapi']['evalapi_edit_criteria'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Override Evaluation Criteria'),
+          '#description' => t('Override this node’s Eval API evaluation criteria.'),
+          '#collapsible' => TRUE,
+          '#collapsed' => TRUE,
+          '#tree' => TRUE,
+        );
+                
+        foreach ($eval_criteria as $module => $rules) {
+          $form['evalapi']['evalapi_edit_criteria'][$module] = array(
+            '#type' => 'fieldset',
+            '#title' => $module,
+            '#collapsible' => TRUE,
+            '#collapsed' => TRUE,                   
+          );
+          
+          foreach ($rules as $rule => $value) {
+            $form['evalapi']['evalapi_edit_criteria'][$module][$rule] = array(
+              '#type' => 'fieldset', 
+              '#title' => $rule,
+            );
+            
+            $form['evalapi']['evalapi_edit_criteria'][$module][$rule]['override'] = array(
+              '#type' => 'radios',
+              '#title' => t('Set return value'),
+              '#options' => array(
+                'true' => t('Always TRUE'),
+                'false' => t('Always FALSE'),
+                'exclude' => t('Exclude from evaluation'),
+                'keep' => t('Do not override'),
+              ),
+              '#default_value' => 'keep',
+            );
+          }
+        }        
+      }
+    }
+  }
+  
+  
+  // modify an Eval API-enabled node type’s admin add/edit form to include a custom PHP code field
+  if ($form_id == 'node_type_form' && $form['#node_type']->type) {
+    if (_evalapi_is_enabled_content_type($form['#node_type']->type)) {
+      $form['evalapi'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Eval API Settings'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+      );
+      
+      if (user_access('use php for evaluation criteria')) {
+        $form['evalapi']['evalapi_node_type_code'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Evaluation Code'),
+          '#description' => t('Include PHP code to add custom evaluation criteria for this specific node type.'),
+          '#collapsible' => TRUE,
+          '#collapsed' => FALSE,
+        );
+        
+        $form['evalapi']['evalapi_node_type_code']['evalapi_code'] = array(
+          '#type' => 'textarea',
+          '#title' => t('PHP Code'),
+          '#description' => '<p>'. t('You should <strong>NOT</strong> include &lt;?php ?&gt; tags. Code is expected to return a keyed array like the following: ') .'</p>
+<pre>
+  return array(
+    \'some_value\' =&gt; TRUE,
+    \'some_other_value\' =&gt; FALSE,
+  );
+</pre>',
+        '#default_value' => variable_get('evalapi_code_'. $form['#node_type']->type, NULL),
+        );
+      }
+      
+      $form['evalapi']['evalapi_node_type_handler'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Evaluation Handler'),
+        '#description' => t('Choose the default evaluation handler for nodes of this type.'),
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,        
+      );
+      
+      $default_handler = variable_get('evalapi_default_handler', '_evalapi_default_handler');
+      
+      $handlers = _evalapi_process_handlers();
+      
+      $form['evalapi']['evalapi_node_type_handler']['evalapi_handler'] = array(
+        '#type' => 'select',
+        '#title' => t('Choose Default Handler'),
+        '#options' => $handlers,
+        '#default_value' => variable_get('evalapi_handler_'. $form['#node_type']->type, $default_handler),
+      );      
+    }
+  }  
+}
+
+
+
+
+
+/**
+ * Implementation of hook_action_info().
+ */
+function evalapi_action_info() {
+  return array(
+    'evalapi_evaluate_action' => array(
+      'description' => t('Eval API: Evaluate criteria'),
+      'type' => 'node',
+      'configurable' => FALSE,
+      'hooks' => array(
+        'nodeapi' => array('presave', 'insert', 'update', 'delete', 'view'),
+      ),
+    ),
+  );
+}
+
+
+
+
+
+/**
+ * Implementation of a Drupal action.
+ *
+ * Calls _evalapi_evaluate() with $return set to FALSE so that the
+ * node’s evaluation criteria array gets evaluated and the resulting boolean
+ * store in the current user’s session.
+ *
+ * @see _evalapi_evaluate()
+ * @see hook_evalapi()
+ * @see hook_CONTENT_TYPE_NAME_evalapi()
+ * @see hook_evalapi_alter()
+ * @see hook_CONTENT_TYPE_NAME_evalapi_alter()
+ * @see hook_evalapi_handler()
+ * @see hook_evalapi_handler_alter() 
+ */
+function evalapi_evaluate_action(&$object, $context = array()) {
+  _evalapi_evaluate($object, FALSE);
+}
+
+
+
+
+
+/**
+ * Implementation of hook_nodeapi().
+ *
+ * Handles storing, updating, and deleting of a node’s Eval API settings.
+ *
+ * Eval API settings for individual nodes include: 
+ * - custom PHP code for modifying the node’s evaluation criteria.
+ * - the handler for evaluating the node’s evaluation criteria.
+ *
+ * @see evalapi_schema()
+ * @see hook_evalapi()
+ * @see hook_CONTENT_TYPE_NAME_evalapi()
+ * @see hook_evalapi_alter()
+ * @see hook_CONTENT_TYPE_NAME_evalapi_alter()
+ * @see hook_evalapi_handler()
+ * @see hook_evalapi_handler_alter()
+ */
+function evalapi_nodeapi(&$node, $op) {
+  module_load_include('inc', 'evalapi', 'includes/evalapi.api');
+  
+  if (_evalapi_is_enabled_content_type($node->type)) {
+    switch ($op) {
+      case 'insert':
+        global $user;
+        
+        $record = new stdClass();
+        $record->nid = $node->nid;
+        $record->vid = $node->vid;        
+        $record->uid = $user->uid;
+        $record->code = isset($node->evalapi_code) && user_access('use php for evaluation criteria') ? $node->evalapi_code : NULL;
+        $record->handler = $node->evalapi_handler;
+        $record->created = time();
+        $record->changed = time();
+        
+        if (drupal_write_record('evalapi', $record) === SAVED_NEW) {
+          drupal_set_message('<p>'. t('Saved Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>');
+        }
+        else {
+          drupal_set_message('<p>'. t('Unable to save Eval API data for Node [nid:!nid]', array('!nid' => $node->nid) .'</p>'), 'error');
+        }
+        break;
+
+        
+      case 'update':
+        global $user;
+        
+        $record = new stdClass();
+        $record->nid = $node->nid;
+        $record->vid = $node->vid;        
+        $record->uid = $user->uid;
+        $record->code = isset($node->evalapi_code) && user_access('use php for evaluation criteria') ? $node->evalapi_code : NULL;
+        $record->handler = $node->evalapi_handler;
+        $record->changed = time();
+        
+        // ensure node exists in evalapi table before attempting to update
+        $exists = db_result(db_query("SELECT e.nid FROM {evalapi} e WHERE e.nid = %d", $node->nid));
+        
+        if (empty($exists)) {
+          $record->created = time();
+          
+          if (drupal_write_record('evalapi', $record) === SAVED_NEW) {
+            drupal_set_message('<p>'. t('Saved Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>');
+          }
+          else {
+            drupal_set_message('<p>'. t('Unable to save Eval API data for Node [nid:!nid]', array('!nid' => $node->nid) .'</p>'), 'error');
+          }
+        }
+        else {
+          if (drupal_write_record('evalapi', $record, 'nid') === SAVED_UPDATED) {
+            drupal_set_message('<p>'. t('Updated Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>');
+          }
+          else {
+            drupal_set_message('<p>'. t('Unable to updated Eval API data for Node [nid:!nid]', array('!nid' => $node->nid) .'</p>'), 'error');
+          }                                
+        }
+        break;
+        
+        
+      case 'delete':
+        db_query("DELETE FROM {evalapi} WHERE nid = %d", $node->nid);
+        break;
+    }    
+  }
+}
+
+
+
+
+
+/**
+ * Implementation of hook_node_type().
+ *
+ * Updates the available node types for evaluation checking as node types are
+ * created, updated, and deleted.
+ *
+ * @see evalapi_admin_settings_form()
+ * @see evalapi_form_alter()
+ */
+function evalapi_node_type($op, $info) {
+  switch ($op) {
+    case 'insert':
+    case 'update':          
+      if (!empty($info->old_type) && $info->old_type != $info->type) {
+        if (_evalapi_is_enabled_content_type($info->old_type)) {
+          $types = variable_get('evalapi_content_types', array());
+          unset($types[$info->old_type]);
+          $types[$info->type] = $info->type;
+          variable_del('evalapi_content_types');
+          variable_set('evalapi_content_types', $types);
+        }
+      }
+      break;
+
+    
+    case 'delete':
+      $types = variable_get('evalapi_content_types', array());
+      unset($types[$info->type]);
+      variable_del('evalapi_content_types');
+      variable_set('evalapi_content_types', $types);
+      
+      if (variable_get('evalapi_code_'. $info->type, NULL)) {
+        variable_del('evalapi_code_'. $info->type);
+      }
+      
+      if (variable_get('evalapi_handler_'. $info->type, '_evalapi_default_handler')) {
+        variable_del('evalapi_handler_'. $info->type);
+      }      
+      break;
+  }
+}
+
+
+
+
+
+/**
+ * Implementation of hook_node_form_sidebar().
+ *
+ * @see hook_node_form_sidebar()
+ */
+function evalapi_node_form_sidebar($form) {
+  $use_sidebar = variable_get('evalapi_use_admin_sidebar', TRUE);
+  
+  if ($use_sidebar) {
+    return array('evalapi');
+  }
+  else {
+    return array();
+  }
+}
+
+
+
+
+/**
+ * Implementation of hook_evalapi_handler().
+ *
+ * @see _evalapi_default_handler()
+ */
+function evalapi_evalapi_handler() {
+  return array(
+    'evalapi' => array(
+      'name' => t('Default'),
+      'callback' => '_evalapi_default_handler',
+    ),
+  );
+}

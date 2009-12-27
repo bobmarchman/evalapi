@@ -1,0 +1,8 @@
+; $Id$
+
+name = Eval API Example Module
+description = A simple module demonstrating implementations of Eval API hooks.
+dependencies[] = evalapi
+package = Eval API
+core = 6.x
+version = 6.x-1.x-dev

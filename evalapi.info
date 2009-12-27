@@ -1,0 +1,7 @@
+; $Id$
+
+name = Eval API
+description = Provides an API for other modules to utilize that facilitates the adding of arbitrary criteria to content types and nodes that can be evaluated as seen fit by the implementing module.
+package = Eval API
+core = 6.x
+version = 6.x-1.x-dev
