@@ -22,7 +22,7 @@ CONFIGURATION
   
    * Go to Administer > Site Configuration > Eval API Configuration
    * Enable content types that you wish to use with the Eval API module.
-   * Select a default evaluation handler.
+   * Select a global default evaluation handler.
    * Enable/Disable debugging mode.
    * If Admin module is installed and enabled:
        - Enable/Disable Eval API's node form settings to use the Admin module's
@@ -33,13 +33,42 @@ CONFIGURATION
    * Go to Administer > User Management > Permissions
    * Enable permissions for any user roles that will be using the Eval API
      module.
-   
-3. OPTIONALLY CONFIGURE CONTENT TYPE EVAL API SETTINGS
+     
+3. OPTIONALLY ENABLE THE EVAL API ACTION
+
+   * Go to Administer > Site Building > Triggers
+   * Choose the action "Eval API: Evaluate Criteria" for the desired trigger(s)
+   * NOTE: You do NOT have to enable the action to use the Eval API to evaluate
+           a node’s evaluation criteria. You can accomplish the same thing by 
+           simply calling evalapi_evaluate() from hook_nodeapi(). The most 
+           common use is to call evalapi_evaluate() when $op == 'view' in 
+           hook_nodeapi(). The action is included to make it easier to get
+           things going "right out of the box". Future development plans are
+           to make it so that zero PHP programming experience is necessary to
+           make full use of the Eval API. The included action is the first step
+           in that process.
+
+4. OPTIONALLY CONFIGURE CONTENT TYPE EVAL API SETTINGS
   
    * Go to Administer > Content Management > Content Types
    * Click 'edit' for the Eval API enabled content type you wish to configure.
    * On the content type's edit form, there will be a fieldset named
-     Eval API Settings.
+     Eval API Settings. From here you can configure the following settings:
+     
+     - Add evaluation criteria for all nodes of this type by default using
+       PHP code.
+     - Override the global evaluation handler and set a default handler for all
+       nodes of this type.
+
+5. OPTIONALLY CONFIGURE INDIVIDUAL NODE EVAL API SETTINGS
+
+  * When editing a node of an Eval API enabled content type, there will be a new
+    fieldset on the node add/edit form for configuring Eval API settings for
+    this specific node. From here you can configure the following settings:
+    
+    - Add additional evaluation criteria using PHP code.
+    - Override the evaluation handler used.
+    - Override any currently set evaluation criteria for this node.
 
 
 MORE INFORMATION
