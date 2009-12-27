@@ -3,7 +3,7 @@
 
 /**
  * @file
- *   Install tasks for the Eval API Example module.
+ * Install tasks for the Eval API Example module.
  */
 
 
@@ -15,7 +15,7 @@
  */
 function evalapi_example_enable() {
   $types = variable_get('evalapi_content_types', array());
-  
+
   if (!isset($types['evalapi_example'])) {
     $types[] = 'evalapi_example';
     variable_del('evalapi_content_types');
@@ -32,7 +32,7 @@ function evalapi_example_enable() {
  */
 function evalapi_example_disable() {
   $types = variable_get('evalapi_content_types', array());
-  
+
   if (isset($types['evalapi_example'])) {
     variable_del('evalapi_content_types');
     variable_set('evalapi_content_types', $types);

@@ -3,15 +3,7 @@
 
 /**
  * @file
- *   Example module demonstrating implementations of Eval API hooks.
- *
- * @see hook_evalapi()
- * @see hook_CONTENT_TYPE_NAME_evalapi()
- * @see hook_evalapi_alter()
- * @see hook_CONTENT_TYPE_NAME_evalapi_alter()
- * @see hook_evalapi_handler() 
- * @see hook_evalapi_handler_alter() 
- * @see _evalapi_example_handler_callback()
+ * Example module demonstrating implementations of Eval API hooks.
  */
 
 
@@ -70,10 +62,19 @@ function evalapi_example_access($op, $node, $account) {
  */
 function evalapi_example_form(&$node) {
   global $nid;
+
   $type = node_get_types('type', $node);
 
-  $form['title'] = array('#type' => 'textfield', '#title' => check_plain($type->title_label), '#required' => TRUE, '#default_value' => !empty($node->title) ? $node->title : NULL, '#weight' => -5);
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => check_plain($type->title_label),
+    '#required' => TRUE,
+    '#default_value' => !empty($node->title) ? $node->title : NULL,
+    '#weight' => -5,
+  );
+
   $form['body_field'] = node_body_field($node, $type->body_label, $type->min_word_count);
+
   return $form;
 }
 
@@ -96,8 +97,8 @@ function evalapi_example_view($node, $teaser = FALSE, $page = FALSE) {
  * Implementation of hook_evalapi().
  */
 function evalapi_example_evalapi(&$node) {
-  $eval_criteria['evalapi_example_evalapi_value'] = TRUE;  
-  
+  $eval_criteria['hook_evalapi_value'] = TRUE;
+
   return $eval_criteria;
 }
 
@@ -110,8 +111,8 @@ function evalapi_example_evalapi(&$node) {
  */
 function evalapi_example_evalapi_alter(&$eval_criteria, &$node) {
   if (isset($eval_criteria['evalapi_example'])) {
-    if ($eval_criteria['evalapi_example']['evalapi_example_evalapi_value'] === TRUE) {
-      $eval_criteria['evalapi_example']['evalapi_example_evalapi_alter_value'] = TRUE;
+    if ($eval_criteria['evalapi_example']['hook_evalapi_value'] === TRUE) {
+      $eval_criteria['evalapi_example']['hook_evalapi_alter_value'] = TRUE;
     }
   }
 }
@@ -124,8 +125,8 @@ function evalapi_example_evalapi_alter(&$eval_criteria, &$node) {
  * Implementation of hook_CONTENT_TYPE_NAME_evalapi().
  */
 function evalapi_example_evalapi_example_evalapi(&$node) {
-  $eval_criteria['evalapi_example_evalapi_example_evalapi_value'] = TRUE;
-  
+  $eval_criteria['hook_CONTENT_TYPE_NAME_evalapi_value'] = TRUE;
+
   return $eval_criteria;
 }
 
@@ -138,8 +139,8 @@ function evalapi_example_evalapi_example_evalapi(&$node) {
  */
 function evalapi_example_evalapi_example_evalapi_alter(&$eval_criteria, &$node) {
   if (isset($eval_criteria['evalapi_example'])) {
-    if ($eval_criteria['evalapi_example']['evalapi_example_evalapi_example_evalapi_value'] === TRUE) {
-      $eval_criteria['evalapi_example']['evalapi_example_evalapi_example_evalapi_alter_value'] = TRUE;
+    if ($eval_criteria['evalapi_example']['hook_CONTENT_TYPE_NAME_evalapi_value'] === TRUE) {
+      $eval_criteria['evalapi_example']['hook_CONTENT_TYPE_NAME_evalapi_alter_value'] = TRUE;
     }
   }
 }
@@ -165,11 +166,11 @@ function evalapi_example_evalapi_handler() {
 
 
 /**
- * Implemenation of hook_evalapi_handler_alter().
+ * Implementation of hook_evalapi_handler_alter().
  */
 function evalapi_example_evalapi_handler_alter(&$handlers) {
   global $user;
-  
+
   if (isset($handlers['evalapi_example']) && $user->uid == 1) {
     $handlers['evalapi_example']['name'] = t('Eval API Example: Altered');
   }

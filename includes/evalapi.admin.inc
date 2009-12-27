@@ -1,4 +1,4 @@
- <?php
+<?php
 // $Id$
 
 /**
@@ -11,9 +11,9 @@
 
 
 /**
- * Admin settings form. 
+ * Admin settings form.
  */
-function evalapi_admin_settings_form() {  
+function evalapi_admin_settings_form() {
   $form = array();
 
   // generate a list of content type names to choose from
@@ -34,15 +34,15 @@ function evalapi_admin_settings_form() {
   );
 
   // retrieve list of valid implemented evaluation handlers
-  $handlers = _evalapi_process_handlers();  
-  
+  $handlers = _evalapi_process_handlers();
+
   $form['evalapi_default_handler'] = array(
     '#type' => 'select',
     '#title' => t('Default Evaluation Method'),
     '#description' => t('Choose the default method for evaluating a node’s Eval API criteria.'),
     '#options' => $handlers,
     '#default_value' => variable_get('evalapi_default_handler', '_evalapi_default_handler'),
-  );  
+  );
 
   $form['evalapi_enable_debug'] = array(
     '#type' => 'checkbox',
@@ -50,7 +50,7 @@ function evalapi_admin_settings_form() {
     '#description' => t('When enabled, prints out debugging information when viewing Eval API-enabled nodes.'),
     '#default_value' => variable_get('evalapi_enable_debug', FALSE),
   );
-  
+
   if (module_exists('admin')) {
     $form['evalapi_use_admin_sidebar'] = array(
       '#type' => 'checkbox',

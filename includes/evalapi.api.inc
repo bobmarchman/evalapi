@@ -3,7 +3,7 @@
 
 /**
  * @file
- *   Core Eval API functions.
+ * Core Eval API functions.
  */
 
 
@@ -54,15 +54,9 @@
  *   A node object.
  * @return
  *   An associative array of evaluation criteria where the array keys are an
- *   arbitrary unique string identifier for a given condition and the array 
+ *   arbitrary unique string identifier for a given condition and the array
  *   values are booleans.
- * @see _evalapi_evaluate()
- * @see _evalapi_get_node_eval_code()
- * @see drupal_alter()
- * @see hook_evalapi()
- * @see hook_CONTENT_TYPE_NAME_evalapi()
- * @see hook_evalapi_alter()
- * @see hook_CONTENT_TYPE_NAME_evalapi_alter()
+ * @see _evalapi_evaluate(), _evalapi_get_node_eval_code()
  */
 function _evalapi(&$node) {
   $eval_criteria = array();
@@ -77,54 +71,54 @@ function _evalapi(&$node) {
     // input. The solution used below comes from CCK’s content_allowed_values()
     // which itself comes from Views’ handling of ‘views arguments PHP code’.
     $per_node_eval = array();
-    
+
     ob_start();
       $per_node_eval = eval($node_eval_code);
     ob_end_clean();
-    
+
     if (!empty($per_node_eval) && is_array($per_node_eval)) {
       $eval_criteria['node'] = $per_node_eval;
     }
   }
-    
+
   $per_node_type_criteria = array();
   $per_node_criteria = array();
   $modules = array();
-  
+
   // call any modules that implement hook_CONTENT_TYPE_NAME_evalapi()
   foreach (module_implements($node->type .'_evalapi') as $module) {
     $module_criteria = call_user_func($module .'_'. $node->type .'_evalapi', $node);
-    
-    if (isset($module_criteria) && is_array($module_criteria)) {  
+
+    if (isset($module_criteria) && is_array($module_criteria)) {
       foreach (array_keys($module_criteria) as $rule) {
         $modules[$module][$rule] = $module_criteria[$rule];
       }
-      
+
       $per_node_type_criteria = array_merge($per_node_type_criteria, $modules);
     }
   }
-  
+
   // retrieve any evaluation criteria overrides for this node
   $overrides = _evalapi_get_node_overrides($node->nid);
-  
+
   // call any modules that implement hook_evalapi()
   foreach (module_implements('evalapi') as $module) {
     $module_criteria = call_user_func($module .'_evalapi', $node);
-    
+
     if (isset($module_criteria) && is_array($module_criteria)) {
       foreach (array_keys($module_criteria) as $rule) {
         if (isset($overrides[$module][$rule])) {
           $override = $overrides[$module][$rule];
-          
+
           switch ($override) {
             case 'true':
               $modules[$module][$rule] = TRUE;
               break;
-              
+
             case 'false':
               $modules[$module][$rule] = FALSE;
               break;
-              
+
             case 'exclude':
               $modules[$module][$rule] = NULL;
               break;
@@ -169,15 +163,7 @@ function _evalapi(&$node) {
  * @return
  *   - If $return is TRUE, this node’s evaluation criteria array.
  *   - If $return is FALSE, return nothing.
- * @see _evalapi()
- * @see _evalapi_get_node_eval_handler()
- * @see _evalapi_get_eval_value()
- * @see hook_evalapi()
- * @see hook_CONTENT_TYPE_NAME_evalapi()
- * @see hook_evalapi_alter()
- * @see hook_CONTENT_TYPE_NAME_evalapi_alter()
- * @see hook_evalapi_handler() 
- * @see hook_evalapi_handler_alter() 
+ * @see _evalapi(), _evalapi_get_node_eval_handler(), _evalapi_get_eval_value()
  */
 function _evalapi_evaluate(&$node, $return = TRUE) {
   if (_evalapi_is_enabled_content_type($node->type)) {
@@ -186,12 +172,12 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
 
     // if DEBUG mode is enabled, print out the contents of the evaluation criteria array
     $debug_enabled = variable_get('evalapi_enable_debug', FALSE);
-    
+
     if ($debug_enabled) {
       $dbg_message  = '<p><strong>'. t('***** [Eval API: DEBUGGING enabled] *****') .'</strong></p>';
       $dbg_message .= '<p>'. t('Evaluation Criteria for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
       drupal_set_message($dbg_message);
-          
+
       // check for devel module so we can use krumo goodness, if available:
       if (module_exists('devel') && user_access('access devel information')) {
         dpm($eval_criteria);
@@ -207,10 +193,10 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
     }
     else {
       // determine this node’s evaluation value
-      
+
       // retrieve the evaluation handler specified for this node
       $eval_handler = _evalapi_get_node_eval_handler($node);
-      
+
       $eval_value = _evalapi_get_eval_value($eval_criteria, $eval_handler);
 
       // create a unique session array key for this specific node
@@ -218,7 +204,7 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
 
       // store the results of the evaluation criteria in the current user’s session
       $_SESSION[$key] = $eval_value;
-      
+
       if ($debug_enabled) {
         if ($eval_value) {
           $value = 'TRUE';
@@ -226,7 +212,7 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
         else {
           $value = 'FALSE';
         }
-        
+
         $message  = '<p>'. t('Evaluation of this node’s criteria returns: !eval_value', array('!eval_value' => $value)) .'</p>';
         $message .= '<p>'. t('Eval API handler callback for this node: !callback', array('!callback' => $eval_handler)) .'</p>';
         drupal_set_message($message);
@@ -245,8 +231,8 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
  * @param $eval_criteria
  *   An associative array of with boolean values as keys.
  * @param $callback
- *   Optional name of a callback function that calculates the evaluation 
- *   criteria array. Arguments for the callback function can be passed in as 
+ *   Optional name of a callback function that calculates the evaluation
+ *   criteria array. Arguments for the callback function can be passed in as
  *   extra parameters to this function.
  * @param $args
  *   Any additional arguments to pass to the callback function, if one is
@@ -261,18 +247,18 @@ function _evalapi_get_eval_value(&$eval_criteria, $callback = NULL) {
 
   if (empty($callback)) {
     $callback = variable_get('evalapi_default_handler', '_evalapi_default_handler');
-  } 
+  }
 
   $args   = array();
   $args[] = $eval_criteria;
-  
-  $func_args = func_get_args();        
+
+  $func_args = func_get_args();
   unset($func_args[0], $func_args[1]);
-  
+
   $args = array_merge($args, $func_args);
 
   $eval_value = call_user_func_array($callback, $args);
-  
+
   return $eval_value;
 }
 
@@ -284,21 +270,19 @@ function _evalapi_get_eval_value(&$eval_criteria, $callback = NULL) {
  * Default Eval API handler callback.
  *
  * Calculation is performed by counting the number of records in the
- * array and then getting the sum of all boolean values, effectively AND’ing 
- * them together. If the array is empty, we assume there are no rules to check 
+ * array and then getting the sum of all boolean values, effectively AND’ing
+ * them together. If the array is empty, we assume there are no rules to check
  * and thusly return TRUE.
- * 
+ *
  * @param $eval_criteria
  *   A node’s evaluation criteria array.
  * @return
  *   - TRUE if the number of array records equals the sum of all the array values.
  *   - FALSE otherwise.
  * @see evalapi_evalapi_handler()
- * @see hook_evalapi_handler()
- * @see hook_evalapi_handler_alter()
  */
 function _evalapi_default_handler(&$eval_criteria) {
- if (empty($eval_criteria)) {    
+  if (empty($eval_criteria)) {
     return TRUE;
   }
 
@@ -307,9 +291,9 @@ function _evalapi_default_handler(&$eval_criteria) {
   foreach ($eval_criteria as $rules) {
     $all_rules = array_merge($all_rules, $rules);
   }
-  
+
   if (count($all_rules) == array_sum($all_rules)) {
-    return TRUE;      
+    return TRUE;
   }
   else {
     return FALSE;
@@ -332,24 +316,22 @@ function _evalapi_default_handler(&$eval_criteria) {
  * @return
  *   An array of valid Eval API handlers.
  * @see evalapi_evalapi_handler()
- * @see hook_evalapi_handler()
- * @see hook_evalapi_handler_alter()
  */
 function _evalapi_get_handlers() {
   $handlers = array();
 
   // call any modules that implement hook_evalapi_handler().
   $handlers = module_invoke_all('evalapi_handler');
-  
+
   foreach ($handlers as $handler => $value) {
     if (!isset($value['callback']) || !function_exists($value['callback'])) {
       unset($handlers[$handler]);
     }
   }
-  
+
   // allow modules to alter Eval API handlers before returning them
   drupal_alter('evalapi_handler', $handlers);
-  
+
   return $handlers;
 }
 
@@ -363,20 +345,18 @@ function _evalapi_get_handlers() {
  * @return
  *   A formatted array of implemented Eval API handlers.
  * @see _evalapi_get_handlers()
- * @see hook_evalapi_handler()
- * @see hook_evalapi_handler_alter() 
  */
 function _evalapi_process_handlers() {
   $handlers = _evalapi_get_handlers();
-  
+
   $options = array();
-  
+
   foreach ($handlers as $handler) {
     $options[$handler['callback']] = $handler['name'];
   }
-  
+
   $options = array_reverse($options, TRUE);
-    
+
   return $options;
 }
 
@@ -395,18 +375,18 @@ function _evalapi_process_handlers() {
  */
 function _evalapi_get_node_eval_code(&$node) {
   $code = NULL;
-  
+
   if (!empty($node->nid)) {
     $code = db_result(db_query(('SELECT e.code FROM {evalapi} e WHERE e.nid = %d'), $node->nid));
-    
+
     if (empty($code)) {
-      $code = variable_get('evalapi_code_'. $node->type, NULL);    
+      $code = variable_get('evalapi_code_'. $node->type, NULL);
     }
   }
   else {
     $code = variable_get('evalapi_code_'. $node->type, NULL);
   }
-  
+
   return $code;
 }
 
@@ -426,27 +406,25 @@ function _evalapi_get_node_eval_code(&$node) {
  * @return
  *   The key for this node’s specified evaluation handler.
  * @see evalapi_evalapi_handler()
- * @see hook_evalapi_handler()
- * @see hook_evalapi_handler_alter() 
  */
 function _evalapi_get_node_eval_handler(&$node) {
   $default_handler = variable_get('evalapi_default_handler', '_evalapi_default_handler');
-  
+
   if (!empty($node->nid)) {
     $handler = db_result(db_query(('SELECT e.handler FROM {evalapi} e WHERE e.nid = %d'), $node->nid));
-    
+
     if (empty($handler)) {
-      $handler = variable_get('evalapi_handler_'. $node->type, $default_handler);    
+      $handler = variable_get('evalapi_handler_'. $node->type, $default_handler);
     }
   }
   else {
     $handler = variable_get('evalapi_handler_'. $node->type, $default_handler);
   }
-  
+
   if (empty($handler)) {
-    $handler = $default_handler;    
-  }  
-  
+    $handler = $default_handler;
+  }
+
   return $handler;
 }
 
@@ -462,10 +440,10 @@ function _evalapi_get_node_eval_handler(&$node) {
  */
 function _evalapi_process_node_overrides($form, &$form_state) {
   //dpm($form_state);
-  
+
   $criteria = $form_state['values']['evalapi_edit_criteria'];
   $overrides = array();
-  
+
   foreach ($criteria as $module => $keys) {
     foreach ($keys as $key => $value) {
       if ($value['override'] != 'keep') {
@@ -473,7 +451,7 @@ function _evalapi_process_node_overrides($form, &$form_state) {
       }
     }
   }
-    
+
   $form_state['values']['evalapi_edit_criteria'] = serialize($overrides);
 }
 
@@ -488,10 +466,9 @@ function _evalapi_process_node_overrides($form, &$form_state) {
  *   The nid of the node to retrieve overrides for.
  * @return
  *   An associative array of overrides.
- * @see _evalapi_process_node_overrides()
- * @see evalapi_form_alter()
+ * @see _evalapi_process_node_overrides(), evalapi_form_alter()
  */
-function _evalapi_get_node_overrides($nid = 0) {  
+function _evalapi_get_node_overrides($nid = 0) {
   if (empty($nid)) {
     return array();
   }
@@ -499,7 +476,7 @@ function _evalapi_get_node_overrides($nid = 0) {
   $overrides = array();
 
   $result = db_result(db_query('SELECT e.overrides FROM {evalapi} e WHERE e.nid = %d', (int) $nid));
-  
+
   if (!empty($result)) {
     $overrides = unserialize($result);
   }
@@ -524,7 +501,7 @@ function _evalapi_is_enabled_content_type($type = '') {
   if (empty($type)) {
     return FALSE;
   }
-  
+
   $enabled_types = variable_get('evalapi_content_types', array());
 
   if (in_array($type, $enabled_types)) {
@@ -539,7 +516,7 @@ function _evalapi_is_enabled_content_type($type = '') {
 
 
 /**
- * Return a hash. 
+ * Return a hash.
  *
  * Implemented the way Drupal hashes user passwords, but hashes the user’s name
  * instead of their password.
@@ -550,12 +527,12 @@ function _evalapi_is_enabled_content_type($type = '') {
  */
 function _evalapi_make_hash() {
   global $user;
-  
+
   if ($user->uid == 0) {
     $anonymous = variable_get('anonymous', t('Anonymous'));
     return md5(time() . $anonymous);
   }
-  
+
   return md5(time() . $user->name . $user->login);
 }
 
@@ -575,34 +552,26 @@ function _evalapi_make_hash() {
  *   The machine-name of the module that $module will be placed before.
  * @return
  *   The modified source array.
- * @see _evalapi_move_module_after()
- * @see _evalapi_insert_before()
- * @see _evalapi_insert_after()
- * @see _evalapi()
- * @see hook_evalapi()
- * @see hook_CONTENT_TYPE_NAME_evalapi()
- * @see hook_evalapi_alter()
- * @see hook_CONTENT_TYPE_NAME_evalapi_alter()
  */
 function _evalapi_move_module_before($source = array(), $module = '', $target = '') {
-  if (empty($source) || !is_array($source) || 
-      empty($module) || empty($target) || 
+  if (empty($source) || !is_array($source) ||
+      empty($module) || empty($target) ||
       !array_key_exists($module, $source) || !array_key_exists($target, $source)) {
     return;
   }
-  
+
   $hash = _evalapi_make_hash();
-  
+
   $tmp[$hash] = $source[$module];
   $source = _evalapi_insert_before($source, $tmp, $target);
-  
+
   unset($source[$module]);
-  
+
   $new[$module] = $tmp[$hash];
   $source = _evalapi_insert_after($source, $new, $hash);
-  
+
   unset($source[$hash]);
-  
+
   return $source;
 }
 
@@ -622,33 +591,25 @@ function _evalapi_move_module_before($source = array(), $module = '', $target = 
  *   The machine-name of the module that $module will be placed after.
  * @return
  *   The modified source array.
- * @see _evalapi_module_move_before()
- * @see _evalapi_insert_before()
- * @see _evalapi_insert_after()
- * @see _evalapi()
- * @see hook_evalapi()
- * @see hook_CONTENT_TYPE_NAME_evalapi()
- * @see hook_evalapi_alter()
- * @see hook_CONTENT_TYPE_NAME_evalapi_alter()
  */
 function _evalapi_move_module_after($source = array(), $module = '', $target = '') {
-  if (empty($source) || !is_array($source) || 
-      empty($module) || empty($target) || 
+  if (empty($source) || !is_array($source) ||
+      empty($module) || empty($target) ||
       !array_key_exists($module, $source) || !array_key_exists($target, $source)) {
     return;
   }
   $hash = _evalapi_make_hash();
-  
+
   $tmp[$hash] = $source[$module];
   $source = _evalapi_insert_after($source, $tmp, $target);
-  
+
   unset($source[$module]);
-  
+
   $new[$module] = $tmp[$hash];
   $source = _evalapi_insert_before($source, $new, $hash);
-  
+
   unset($source[$hash]);
-  
+
   return $source;
 }
 
@@ -667,34 +628,26 @@ function _evalapi_move_module_after($source = array(), $module = '', $target = '
  *   The name of an existing key in the source array.
  * @return
  *   The modified source array.
- * @see _evalapi_insert_after()
- * @see _evalapi_move_module_before()
- * @see _evalapi_move_module_after()
- * @see _evalapi() 
- * @see hook_evalapi()
- * @see hook_CONTENT_TYPE_NAME_evalapi()
- * @see hook_evalapi_alter()
- * @see hook_CONTENT_TYPE_NAME_evalapi_alter() 
  */
 function _evalapi_insert_before($source = array(), $element = '', $offset = '') {
-  if (empty($source) || !is_array($source) || 
-      empty($element) || empty($offset) || 
+  if (empty($source) || !is_array($source) ||
+      empty($element) || empty($offset) ||
       !array_key_exists($offset, $source)) {
     return;
   }
-  
+
   $array = array();
-  
+
   if (is_int($offset)) {
     $array = array_merge(array_slice($source, 0, $offset), $element, array_slice($source, $offset));
   }
   else {
     foreach ($source as $key => $value) {
-      if ($key == $offset) {        
+      if ($key == $offset) {
         $array = array_merge($array, $element);
       }
 
-      $array[$key] = $value;            
+      $array[$key] = $value;
     }
   }
 
@@ -716,34 +669,26 @@ function _evalapi_insert_before($source = array(), $element = '', $offset = '') 
  *   The name of an existing key in the source array.
  * @return
  *   The modified source array.
- * @see _evalapi_insert_before()
- * @see _evalapi_move_module_before()
- * @see _evalapi_move_module_after()
- * @see _evalapi()  
- * @see hook_evalapi()
- * @see hook_CONTENT_TYPE_NAME_evalapi()
- * @see hook_evalapi_alter()
- * @see hook_CONTENT_TYPE_NAME_evalapi_alter() 
  */
 function _evalapi_insert_after($source = array(), $element = '', $offset = '') {
-  if (empty($source) || !is_array($source) || 
-      empty($element) || empty($offset) || 
+  if (empty($source) || !is_array($source) ||
+      empty($element) || empty($offset) ||
       !array_key_exists($offset, $source)) {
     return;
   }
-  
+
   if (is_int($offset)) {
     $array = array_merge(array_slice($source, 0, $offset + 1), $element, array_slice($source, $offset + 1));
   }
   else {
     foreach ($source as $key => $value) {
       $array[$key] = $value;
-      
+
       if ($key == $offset) {
         $array = array_merge($array, $element);
       }
     }
   }
-  
+
   return $array;
 }

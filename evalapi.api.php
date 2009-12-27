@@ -17,7 +17,7 @@
  *   A node object.
  * @return
  *   An associative array of evaluation criteria where the array keys are an
- *   arbitrary unique string identifier for a given condition and the array 
+ *   arbitrary unique string identifier for a given condition and the array
  *   values are booleans.
  */
 function hook_evalapi(&$node) {
@@ -40,7 +40,7 @@ function hook_evalapi(&$node) {
  *   A node object.
  * @return
  *   An associative array of evaluation criteria where the array keys are an
- *   arbitrary unique string identifier for a given condition and the array 
+ *   arbitrary unique string identifier for a given condition and the array
  *   values are booleans.
  */
 function hook_CONTENT_TYPE_NAME_evalapi(&$node) {
@@ -61,8 +61,8 @@ function hook_CONTENT_TYPE_NAME_evalapi(&$node) {
  *
  * @param $eval_criteria
  *   An associative array of evaluation criteria where the array keys are an
- *   arbitrary unique string identifier for a given condition and the array 
- *   values are booleans. 
+ *   arbitrary unique string identifier for a given condition and the array
+ *   values are booleans.
  * @param $node
  *   A node object.
  */
@@ -81,8 +81,8 @@ function hook_evalapi_alter(&$eval_criteria, &$node) {
  *
  * @param $eval_criteria
  *   An associative array of evaluation criteria where the array keys are an
- *   arbitrary unique string identifier for a given condition and the array 
- *   values are booleans. 
+ *   arbitrary unique string identifier for a given condition and the array
+ *   values are booleans.
  * @param $node
  *   A node object.
  */
@@ -103,7 +103,7 @@ function hook_CONTENT_TYPE_NAME_evalapi_alter(&$eval_criteria, &$node) {
  *   An associative array with one key that is the implementing module’s name
  *   whose value is also an associative array with the following keys:
  *     "name": The human-readable name for this evaluation handler.
- *     "callback": The name of a callback function that does the evaluation. 
+ *     "callback": The name of a callback function that does the evaluation.
  */
 function hook_evalapi_handler() {
   return array(
@@ -144,18 +144,18 @@ function hook_evalapi_handler_alter(&$handlers) {
  * @see _evalapi_default_handler()
  */
 function _evalapi_example_evalapi_handler_callback(&$eval_criteria) {
- if (empty($eval_criteria)) {    
+  if (empty($eval_criteria)) {
     return TRUE;
   }
-  
+
   $all_rules  = array();
 
   foreach ($eval_criteria as $rules) {
     $all_rules = array_merge($all_rules, $rules);
   }
-  
+
   if (count($all_rules) == array_sum($all_rules)) {
-    return TRUE;      
+    return TRUE;
   }
   else {
     return FALSE;
