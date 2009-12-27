@@ -152,8 +152,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
         '#default_value' => _evalapi_get_node_eval_handler($form['#node']),
       );      
 
-
-      
+     
       // if we are editing a node, not creating…
       if (!empty($form['nid']['#value'])) {
         $form['#submit'][] = '_evalapi_process_node_overrides';
@@ -168,7 +167,9 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
           '#collapsed' => TRUE,
           '#tree' => TRUE,
         );
-                
+        
+        $overrides = _evalapi_get_node_overrides($form['nid']['#value']);
+
         foreach ($eval_criteria as $module => $rules) {
           $form['evalapi']['evalapi_edit_criteria'][$module] = array(
             '#type' => 'fieldset',
@@ -192,7 +193,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
                 'exclude' => t('Exclude from evaluation'),
                 'keep' => t('Do not override'),
               ),
-              '#default_value' => 'keep',
+              '#default_value' => isset($overrides[$module][$rule]) ? $overrides[$module][$rule] : 'keep',
             );
           }
         }        
@@ -334,6 +335,7 @@ function evalapi_nodeapi(&$node, $op) {
         $record->uid = $user->uid;
         $record->code = isset($node->evalapi_code) && user_access('use php for evaluation criteria') ? $node->evalapi_code : NULL;
         $record->handler = $node->evalapi_handler;
+        $record->overrides = $node->evalapi_edit_criteria;
         $record->created = time();
         $record->changed = time();
         
@@ -355,6 +357,7 @@ function evalapi_nodeapi(&$node, $op) {
         $record->uid = $user->uid;
         $record->code = isset($node->evalapi_code) && user_access('use php for evaluation criteria') ? $node->evalapi_code : NULL;
         $record->handler = $node->evalapi_handler;
+        $record->overrides = $node->evalapi_edit_criteria;
         $record->changed = time();
         
         // ensure node exists in evalapi table before attempting to update
