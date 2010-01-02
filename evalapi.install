@@ -53,6 +53,7 @@ function evalapi_schema() {
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'default' => 0,
         'description' => 'The {node}.nid of the node storing Eval API data for this record.',
       ),
       'uid' => array(
