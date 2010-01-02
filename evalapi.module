@@ -310,7 +310,6 @@ function evalapi_nodeapi(&$node, $op) {
 
         $record = new stdClass();
         $record->nid = $node->nid;
-        $record->vid = $node->vid;
         $record->uid = $user->uid;
         $record->code = isset($node->evalapi_code) && user_access('use php for evaluation criteria') ? $node->evalapi_code : NULL;
         $record->handler = $node->evalapi_handler;
@@ -332,7 +331,6 @@ function evalapi_nodeapi(&$node, $op) {
 
         $record = new stdClass();
         $record->nid = $node->nid;
-        $record->vid = $node->vid;
         $record->uid = $user->uid;
         $record->code = isset($node->evalapi_code) && user_access('use php for evaluation criteria') ? $node->evalapi_code : NULL;
         $record->handler = $node->evalapi_handler;
