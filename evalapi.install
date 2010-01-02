@@ -18,8 +18,6 @@
 function evalapi_install() {
   drupal_install_schema('evalapi');
 
-  db_query("UPDATE {system} SET weight = 1 WHERE name = 'evalapi'");
-
   drupal_set_message(st("Eval API installed successfully. Settings are available under !link",
     array('!link' => l('Administer > Site configuration > Eval API Configuration ', 'admin/settings/evalapi'))
   ));
@@ -57,13 +55,6 @@ function evalapi_schema() {
         'not null' => TRUE,
         'description' => 'The {node}.nid of the node storing Eval API data for this record.',
       ),
-      'vid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => 'The current {node_revisions}.vid version identifier for this node.',
-      ),
       'uid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -82,13 +73,13 @@ function evalapi_schema() {
         'length' => 255,
         'not null' => TRUE,
         'default' => '_evalapi_default_handler',
-        'description' => 'The evaluation handler for this specific node',
+        'description' => 'The evaluation handler defined for this specific node',
       ),
       'overrides' => array(
         'type' => 'text',
         'size' => 'big',
         'not null' => FALSE,
-        'description' => 'A serialized array representing Eval API values that have been overridden for this specific node.',
+        'description' => 'A serialized array representing Eval API criteria values that have been overridden for this specific node.',
       ),
       'created' => array(
         'type' => 'int',
