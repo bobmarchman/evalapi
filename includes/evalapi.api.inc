@@ -56,6 +56,9 @@
  *   An associative array of evaluation criteria where the array keys are an
  *   arbitrary unique string identifier for a given condition and the array
  *   values are booleans.
+ * @TODO
+ *   Refactor Eval API node overrides handling into a single function for less
+ *   duplication of code.
  * @see _evalapi_evaluate(), _evalapi_get_node_eval_code()
  */
 function _evalapi(&$node) {
@@ -85,27 +88,14 @@ function _evalapi(&$node) {
   $per_node_criteria = array();
   $modules = array();
 
+  // retrieve any evaluation criteria overrides for this node
+  $overrides = _evalapi_get_node_overrides($node->nid);
+
   // call any modules that implement hook_CONTENT_TYPE_NAME_evalapi()
   foreach (module_implements($node->type .'_evalapi') as $module) {
     $module_criteria = call_user_func($module .'_'. $node->type .'_evalapi', $node);
 
-    if (isset($module_criteria) && is_array($module_criteria)) {
-      foreach (array_keys($module_criteria) as $rule) {
-        $modules[$module][$rule] = $module_criteria[$rule];
-      }
-
-      $per_node_type_criteria = array_merge($per_node_type_criteria, $modules);
-    }
-  }
-
-  // retrieve any evaluation criteria overrides for this node
-  $overrides = _evalapi_get_node_overrides($node->nid);
-
-  // call any modules that implement hook_evalapi()
-  foreach (module_implements('evalapi') as $module) {
-    $module_criteria = call_user_func($module .'_evalapi', $node);
-
-    if (isset($module_criteria) && is_array($module_criteria)) {
+    if (!empty($module_criteria) && is_array($module_criteria)) {
       foreach (array_keys($module_criteria) as $rule) {
         if (isset($overrides[$module][$rule])) {
           $override = $overrides[$module][$rule];
@@ -120,7 +110,46 @@ function _evalapi(&$node) {
               break;
 
             case 'exclude':
-              $modules[$module][$rule] = NULL;
+              // not using NULL here because we still want modules to be able to
+              // alter ALL Eval API criteria. That includes overriding excluded
+              // values, also, if need be.
+              $modules[$module][$rule] = 'excluded';
+              break;
+          }
+        }
+        else {
+          $modules[$module][$rule] = $module_criteria[$rule];
+        }
+      }
+
+      $per_node_type_criteria = array_merge($per_node_type_criteria, $modules);
+    }
+  }
+
+
+  // call any modules that implement hook_evalapi()
+  foreach (module_implements('evalapi') as $module) {
+    $module_criteria = call_user_func($module .'_evalapi', $node);
+
+    if (!empty($module_criteria) && is_array($module_criteria)) {
+      foreach (array_keys($module_criteria) as $rule) {
+        if (isset($overrides[$module][$rule])) {
+          $override = $overrides[$module][$rule];
+
+          switch ($override) {
+            case 'true':
+              $modules[$module][$rule] = TRUE;
+              break;
+
+            case 'false':
+              $modules[$module][$rule] = FALSE;
+              break;
+
+            case 'exclude':
+              // not using NULL here because we still want modules to be able to
+              // alter ALL Eval API criteria. That includes overriding excluded
+              // values, also, if need be.
+              $modules[$module][$rule] = 'excluded';
               break;
           }
         }
@@ -173,7 +202,7 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
     // if DEBUG mode is enabled, print out the contents of the evaluation criteria array
     $debug_enabled = variable_get('evalapi_enable_debug', FALSE);
 
-    if ($debug_enabled) {
+    if ($debug_enabled && user_access('administrate eval api')) {
       $dbg_message  = '<p><strong>'. t('***** [Eval API: DEBUGGING enabled] *****') .'</strong></p>';
       $dbg_message .= '<p>'. t('Evaluation Criteria for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
       drupal_set_message($dbg_message);
@@ -183,12 +212,15 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
         dpm($eval_criteria);
       }
       else {
-        $dbg_message .= '<pre>'. print_r($eval_criteria, TRUE) .'</pre>';
-        drupal_set_message($dbg_message);
+        $output = '<pre>'. print_r($eval_criteria, TRUE) .'</pre>';
+        drupal_set_message($output);
       }
     }
 
     if ($return) {
+      // simply return the evaluation criteria array without evaluating it.
+      // used for simply retrieving a node’s evaluation criteria and for
+      // debugging purposes.
       return $eval_criteria;
     }
     else {
@@ -196,6 +228,20 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
 
       // retrieve the evaluation handler specified for this node
       $eval_handler = _evalapi_get_node_eval_handler($node);
+
+      // now we unset any excluded evaluation criteria as modules have had their
+      // chance to override the exclusion by this point and we can safely assume
+      // the criteria should be excluded.
+      foreach ($eval_criteria as $module => $rules) {
+        foreach ($rules as $rule => $value) {
+          // must use === operator here to check for excluded criteria. if we
+          // just use $value == 'excluded', it will consider any criteria with
+          // a value of TRUE as excluded, which we obviously don’t want.
+          if ($value === 'excluded') {
+            unset($eval_criteria[$module][$rule]);
+          }
+        }
+      }
 
       $eval_value = _evalapi_get_eval_value($eval_criteria, $eval_handler);
 
@@ -205,7 +251,7 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
       // store the results of the evaluation criteria in the current user’s session
       $_SESSION[$key] = $eval_value;
 
-      if ($debug_enabled) {
+      if ($debug_enabled && user_access('administrate eval api')) {
         if ($eval_value) {
           $value = 'TRUE';
         }
@@ -438,9 +484,7 @@ function _evalapi_get_node_eval_handler(&$node) {
  * Processes and stores Eval API evaluation criteria overrides for a node.
  * @see evalapi_form_alter()
  */
-function _evalapi_process_node_overrides($form, &$form_state) {
-  //dpm($form_state);
-
+function _evalapi_process_node_form_overrides($form, &$form_state) {
   $criteria = $form_state['values']['evalapi_edit_criteria'];
   $overrides = array();
 
