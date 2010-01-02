@@ -148,7 +148,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
 
       // if we are editing a node, not creating…
       if (!empty($form['nid']['#value'])) {
-        $form['#submit'][] = '_evalapi_process_node_overrides';
+        $form['#submit'][] = '_evalapi_process_node_form_overrides';
 
         $eval_criteria = _evalapi_evaluate($form['#node'], TRUE);
 
@@ -279,7 +279,7 @@ function evalapi_action_info() {
  *
  * Calls _evalapi_evaluate() with $return set to FALSE so that the
  * node’s evaluation criteria array gets evaluated and the resulting boolean
- * store in the current user’s session.
+ * stored in the current user’s session.
  *
  * @see _evalapi_evaluate()
  */
