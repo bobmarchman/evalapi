@@ -31,7 +31,7 @@ function evalapi_example_node_info() {
  * Implementation of hook_perm().
  */
 function evalapi_example_perm() {
-  return array('create evalapi example', 'delete own evalapi examples', 'delete any evalapi example', 'edit own evalapi examples', 'edit any evalapi example');
+  return array('create evalapi example', 'delete own evalapi example', 'delete any evalapi example', 'edit own evalapi example', 'edit any evalapi example');
 }
 
 
@@ -111,9 +111,7 @@ function evalapi_example_evalapi(&$node) {
  */
 function evalapi_example_evalapi_alter(&$eval_criteria, &$node) {
   if (isset($eval_criteria['evalapi_example'])) {
-    if ($eval_criteria['evalapi_example']['hook_evalapi_value'] === TRUE) {
-      $eval_criteria['evalapi_example']['hook_evalapi_alter_value'] = TRUE;
-    }
+    $eval_criteria['evalapi_example']['hook_evalapi_alter_value'] = TRUE;
   }
 }
 
@@ -139,9 +137,7 @@ function evalapi_example_evalapi_example_evalapi(&$node) {
  */
 function evalapi_example_evalapi_example_evalapi_alter(&$eval_criteria, &$node) {
   if (isset($eval_criteria['evalapi_example'])) {
-    if ($eval_criteria['evalapi_example']['hook_CONTENT_TYPE_NAME_evalapi_value'] === TRUE) {
-      $eval_criteria['evalapi_example']['hook_CONTENT_TYPE_NAME_evalapi_alter_value'] = TRUE;
-    }
+    $eval_criteria['evalapi_example']['hook_CONTENT_TYPE_NAME_evalapi_alter_value'] = TRUE;
   }
 }
 
