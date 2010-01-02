@@ -100,9 +100,6 @@ function evalapi_schema() {
       'created' => array('created'),
       'uid' => array('uid'),
     ),
-    'unique keys' => array(
-      'vid' => array('vid'),
-    ),
     'primary key' => array('nid'),
   );
 
