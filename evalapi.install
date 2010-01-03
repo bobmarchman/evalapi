@@ -19,7 +19,7 @@ function evalapi_install() {
   drupal_install_schema('evalapi');
 
   drupal_set_message(st("Eval API installed successfully. Settings are available under !link",
-    array('!link' => l('Administer > Site configuration > Eval API Configuration ', 'admin/settings/evalapi'))
+    array('!link' => l(st('Administer > Site configuration > Eval API Configuration'), 'admin/settings/evalapi'))
   ));
 }
 

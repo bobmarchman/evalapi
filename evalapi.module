@@ -117,7 +117,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
         $form['evalapi']['evalapi_eval_code']['evalapi_code'] = array(
           '#type' => 'textarea',
           '#title' => t('Code'),
-          '#description' => '<p>'. t('You should <strong>NOT</strong> include &lt;?php ?&gt; tags. Code is expected to return a keyed array like the following: ') .'</p>
+          '#description' => '<p>'. t('You should <strong>NOT</strong> include &lt;?php ?&gt; tags. Code is expected to return a keyed array like the following:') .'</p>
 <pre>
   return array(
     \'foo\' =&gt; TRUE,
@@ -217,7 +217,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
         $form['evalapi']['evalapi_node_type_code']['evalapi_code'] = array(
           '#type' => 'textarea',
           '#title' => t('PHP Code'),
-          '#description' => '<p>'. t('You should <strong>NOT</strong> include &lt;?php ?&gt; tags. Code is expected to return a keyed array like the following: ') .'</p>
+          '#description' => '<p>'. t('You should <strong>NOT</strong> include &lt;?php ?&gt; tags. Code is expected to return a keyed array like the following:') .'</p>
 <pre>
   return array(
     \'some_value\' =&gt; TRUE,
@@ -318,10 +318,12 @@ function evalapi_nodeapi(&$node, $op) {
         $record->changed = time();
 
         if (drupal_write_record('evalapi', $record) === SAVED_NEW) {
-          drupal_set_message('<p>'. t('Saved Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>');
+          $message = '<p>'. t('Saved Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
+          drupal_set_message($message);
         }
         else {
-          drupal_set_message('<p>'. t('Unable to save Eval API data for Node [nid:!nid]', array('!nid' => $node->nid) .'</p>'), 'error');
+          $message = '<p>'. t('Unable to save Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
+          drupal_set_message($message, 'error');
         }
         break;
 
@@ -344,18 +346,22 @@ function evalapi_nodeapi(&$node, $op) {
           $record->created = time();
 
           if (drupal_write_record('evalapi', $record) === SAVED_NEW) {
-            drupal_set_message('<p>'. t('Saved Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>');
+            $message = '<p>'. t('Saved Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
+            drupal_set_message($message);
           }
           else {
-            drupal_set_message('<p>'. t('Unable to save Eval API data for Node [nid:!nid]', array('!nid' => $node->nid) .'</p>'), 'error');
+            $message = '<p>'. t('Unable to save Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
+            drupal_set_message($message, 'error');
           }
         }
         else {
           if (drupal_write_record('evalapi', $record, 'nid') === SAVED_UPDATED) {
-            drupal_set_message('<p>'. t('Updated Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>');
+            $message = '<p>'. t('Updated Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
+            drupal_set_message($message);
           }
           else {
-            drupal_set_message('<p>'. t('Unable to updated Eval API data for Node [nid:!nid]', array('!nid' => $node->nid) .'</p>'), 'error');
+            $message = '<p>'. t('Unable to update Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
+            drupal_set_message($message, 'error');
           }
         }
         break;
