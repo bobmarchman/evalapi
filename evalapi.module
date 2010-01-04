@@ -487,3 +487,37 @@ function evalapi_evalapi_handler() {
     ),
   );
 }
+
+
+
+
+
+/**
+ * Implementation of hook_token_list().
+ */
+function evalapi_token_list($type = 'all') {
+  if ($type == 'node' || $type == 'all') {
+    $tokens['node']['evalapi-value'] = t('This node’s Eval API evaluated value for the current user.');
+  }
+
+  return $tokens;
+}
+
+
+
+
+
+/**
+ * Implementation of hook_token_values().
+ */
+function evalapi_token_values($type, $object = NULL) {
+  $values = array();
+  
+  switch ($type) {
+    case 'node':
+      $values['evalapi-value'] = _evalapi_evaluate($object, FALSE);
+      break;
+  }
+  
+  return $values;
+}
