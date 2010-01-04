@@ -103,7 +103,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
         $criteria_help = '';
         $handlers_help = '';
       }
-        
+
       $form['evalapi'] = array(
         '#type' => 'fieldset',
         '#title' => t('Eval API'),
@@ -512,7 +512,7 @@ function evalapi_token_list($type = 'all') {
  */
 function evalapi_token_values($type, $object = NULL) {
   $values = array();
-  
+
   switch ($type) {
     case 'node':
       $values['evalapi-value'] = _evalapi_evaluate($object, FALSE);

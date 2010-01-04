@@ -28,9 +28,9 @@ function evalapi_admin_settings_form() {
   $form['evalapi_enable_content_types'] = array(
     '#type' => 'fieldset',
     '#title' => t('Enable Content Types'),
-    '#description' => t('Choose which content types should be enabled to utilize Eval API.'),    
+    '#description' => t('Choose which content types should be enabled to utilize Eval API.'),
   );
-  
+
   $form['evalapi_enable_content_types']['evalapi_content_types'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Enable Content Types'),
@@ -41,7 +41,7 @@ function evalapi_admin_settings_form() {
 
   // retrieve list of valid implemented evaluation handlers
   $handlers = _evalapi_process_handlers();
-  
+
   if (module_exists('advanced_help')) {
     $help = theme('advanced_help_topic', 'evalapi', 'evaluation-handlers');
   }
@@ -52,13 +52,13 @@ function evalapi_admin_settings_form() {
   $form['evalapi_handler'] = array(
     '#type' => 'fieldset',
     '#title' => t('Choose Default Handler'),
-    '#description' => $help . t('Choose the default method for evaluating a node’s Eval API criteria.'),    
+    '#description' => $help . t('Choose the default method for evaluating a node’s Eval API criteria.'),
   );
-  
+
   $form['evalapi_handler']['evalapi_default_handler'] = array(
     '#type' => 'select',
     '#title' => t('Default Evaluation Method'),
-    '#description' => t('Select a default evaluation handler from the list.'),
+    '#description' => t('Choose a default evaluation handler from the list.'),
     '#options' => $handlers,
     '#default_value' => variable_get('evalapi_default_handler', '_evalapi_default_handler'),
   );
@@ -68,7 +68,7 @@ function evalapi_admin_settings_form() {
     '#title' => t('Configure Miscellaneous Options'),
     '#description' => t('Various other Eval API settings.'),
   );
-  
+
   $form['evalapi_misc_options']['evalapi_enable_debug'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable Debug Mode'),
