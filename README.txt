@@ -235,7 +235,7 @@ EXAMPLE USE-CASES
 MORE INFORMATION
 ----------------
 
-See API.txt for Eval API developer documentation and example hook implementations.
+See evalapi.api.php for example Eval API hook implementations.
 
 github homepage: http://github.com/bobmarchman/evalapi
 github repo:     git://github.com/bobmarchman/evalapi.git
