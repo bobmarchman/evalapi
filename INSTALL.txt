@@ -39,14 +39,14 @@ CONFIGURATION
    * Go to Administer > Site Building > Triggers
    * Choose the action "Eval API: Evaluate Criteria" for the desired trigger(s)
    * NOTE: You do NOT have to enable the action to use the Eval API to evaluate
-           a node’s evaluation criteria. You can accomplish the same thing by 
-           simply calling evalapi_evaluate() from hook_nodeapi(). The most 
-           common use is to call evalapi_evaluate() when $op == 'view' in 
-           hook_nodeapi(). The action is included to make it easier to get
-           things going "right out of the box". Future development plans are
-           to make it so that zero PHP programming experience is necessary to
-           make full use of the Eval API. The included action is the first step
-           in that process.
+           a node’s evaluation criteria. If you have enabled any content types
+           to use the Eval API, evaluation is still run even if the action is
+           not assigned to any trigger(s). Alternatively, you can bypass all of
+           this and accomplish the same thing by calling evalapi_evaluate() from
+           hook_nodeapi(). The most common use is to call evalapi_evaluate() 
+           when $op == 'view' in hook_nodeapi(). Future development plans are to
+           make it so that zero PHP programming experience is necessary to make
+           full use of the Eval API.
 
 4. OPTIONALLY CONFIGURE CONTENT TYPE EVAL API SETTINGS
   
@@ -74,4 +74,4 @@ CONFIGURATION
 MORE INFORMATION
 ----------------
 
-See README.txt for usage and configuration instructions and examples.
+See README.txt for usage and configuration instructions, examples, and other resources.
