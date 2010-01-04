@@ -106,7 +106,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
 
       $form['evalapi'] = array(
         '#type' => 'fieldset',
-        '#title' => t('Eval API'),
+        '#title' => t('Eval API settings'),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
@@ -215,7 +215,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
 
       $form['evalapi'] = array(
         '#type' => 'fieldset',
-        '#title' => t('Eval API Settings'),
+        '#title' => t('Eval API settings'),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
