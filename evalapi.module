@@ -95,6 +95,15 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
   // modify an Eval API-enabled node’s admin add/edit form to include a custom PHP code field
   if (isset($form['type']) && $form['type']['#value'] .'_node_form' == $form_id) {
     if (_evalapi_is_enabled_content_type($form['type']['#value'])) {
+      if (module_exists('advanced_help')) {
+        $criteria_help = theme('advanced_help_topic', 'evalapi', 'evaluation-criteria');
+        $handlers_help = theme('advanced_help_topic', 'evalapi', 'evaluation-handlers');
+      }
+      else {
+        $criteria_help = '';
+        $handlers_help = '';
+      }
+        
       $form['evalapi'] = array(
         '#type' => 'fieldset',
         '#title' => t('Eval API'),
@@ -105,8 +114,8 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
       if (user_access('use php for evalapi criteria')) {
         $form['evalapi']['evalapi_eval_code'] = array(
           '#type' => 'fieldset',
-          '#title' => t('PHP Code'),
-          '#description' => t('Include PHP code to add custom evaluation criteria for this specific node.'),
+          '#title' => t('Evaluation Code'),
+          '#description' => $criteria_help . t('Include PHP code to add custom evaluation criteria for this specific node.'),
           '#collapsible' => TRUE,
           '#collapsed' => TRUE,
         );
@@ -128,7 +137,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
       $form['evalapi']['evalapi_eval_handler'] = array(
         '#type' => 'fieldset',
         '#title' => t('Override Evaluation Handler'),
-        '#description' => t('You can choose to override the default evaluation handler for this specific node.'),
+        '#description' => $handlers_help . t('You can choose to override the default evaluation handler for this specific node.'),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
@@ -195,6 +204,15 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
   // modify an Eval API-enabled node type’s admin add/edit form to include a custom PHP code field
   if ($form_id == 'node_type_form' && $form['#node_type']->type) {
     if (_evalapi_is_enabled_content_type($form['#node_type']->type)) {
+      if (module_exists('advanced_help')) {
+        $criteria_help = theme('advanced_help_topic', 'evalapi', 'evaluation-criteria');
+        $handlers_help = theme('advanced_help_topic', 'evalapi', 'evaluation-handlers');
+      }
+      else {
+        $criteria_help = '';
+        $handlers_help = '';
+      }
+
       $form['evalapi'] = array(
         '#type' => 'fieldset',
         '#title' => t('Eval API Settings'),
@@ -206,7 +224,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
         $form['evalapi']['evalapi_node_type_code'] = array(
           '#type' => 'fieldset',
           '#title' => t('Evaluation Code'),
-          '#description' => t('Include PHP code to add custom evaluation criteria for this specific node type.'),
+          '#description' => $criteria_help . t('Include PHP code to add custom evaluation criteria for this specific node type.'),
           '#collapsible' => TRUE,
           '#collapsed' => FALSE,
         );
@@ -228,7 +246,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
       $form['evalapi']['evalapi_node_type_handler'] = array(
         '#type' => 'fieldset',
         '#title' => t('Evaluation Handler'),
-        '#description' => t('Choose the default evaluation handler for nodes of this type.'),
+        '#description' => $handlers_help . t('Choose the default evaluation handler for nodes of this type.'),
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
       );

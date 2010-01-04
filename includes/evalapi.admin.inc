@@ -35,11 +35,18 @@ function evalapi_admin_settings_form() {
 
   // retrieve list of valid implemented evaluation handlers
   $handlers = _evalapi_process_handlers();
+  
+  if (module_exists('advanced_help')) {
+    $help = theme('advanced_help_topic', 'evalapi', 'evaluation-handlers');
+  }
+  else {
+    $help = '';
+  }
 
   $form['evalapi_default_handler'] = array(
     '#type' => 'select',
     '#title' => t('Default Evaluation Method'),
-    '#description' => t('Choose the default method for evaluating a node’s Eval API criteria.'),
+    '#description' => $help . t('Choose the default method for evaluating a node’s Eval API criteria.'),
     '#options' => $handlers,
     '#default_value' => variable_get('evalapi_default_handler', '_evalapi_default_handler'),
   );

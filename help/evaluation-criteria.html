@@ -1,0 +1,44 @@
+<!-- $Id$ -->
+The <strong>Eval API</strong> module provides an API for other modules to utilize that facilitates the adding of arbitrary criteria to content types and nodes that can be evaluated as seen fit by the implementing module. Put simply, nodes can be given a set of arbitrary criteria that can be evaluated for a given purpose. Other modules can use these criteria and the evaluated results however they see fit.
+
+The <strong>Eval API</strong> module facilitates this with two concepts:
+
+1. By building a <em>truth table</em> for the node using array key => value combinations supplied by other modules and input in the UI.
+2. By evaluating this <em>truth table</em> using a pre-defined or custom handler.
+
+The <em>truth table</em> is referred to throughout the <strong>Eval API</strong> as the node’s <em>evaluation criteria</em>.
+
+This table is nothing more than an associative array in the following format:
+
+<pre>
+$criteria = array(
+  'implementing_module_name' => array(
+    'some_arbitrary_value' => TRUE,
+    'some_other_value' => FALSE,
+  ),
+  'another_implementing_module' => array(
+    'some_value' => TRUE,
+  ),
+);
+</pre>
+
+Where the top-level keys is the name of the module adding criteria and its value is an associative array with its keys as descriptive identifiers with boolean values.
+
+A more recognizable example may be:
+
+<pre>
+$criteria = array(
+  'node' => array(
+    'author_is_not_self' => TRUE,
+  ),
+  'poll' => array(
+    'today_is_wednesday' => TRUE,
+  ),
+);
+</pre>
+
+Here we see two module names: node and poll. Each has defined a single criteria will be evaluated as a part of the whole. <strong>Eval API</strong> uses an <em>evaluation handler</em> to determine the final boolean value when all the node’s criteria have been evaluated.
+
+By default, <strong>Eval API</strong>’s default evaluation handler simply AND’s all the criteria values together. By using <strong>Eval API</strong>’s provided hooks, as well as the ability to override evaluation criteria and evaluation handlers on a per-content type AND per-node basis, a great deal of flexibility is offered to accommodate complex business requirements.
+
+Going back to the example above, we could say that our business requirement is to disallow a user from voting on a specific poll if that user is the poll’s author and the current day of the week is Wednesday. Looking at our example criteria, if we used the default evaluation handler, this node’s criteria would evaluate to TRUE and the user would be allowed to vote.
