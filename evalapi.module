@@ -30,14 +30,11 @@ function evalapi_help($path, $arg) {
       $output  = '<h3>'. t('About') .'</h3>';
       $output .= '<p>'. t('The Eval API module provides an API that facilitates the adding of arbitrary criteria to content types and nodes that can be evaluated as seen fit by the implementing module.') .'</p>';
       $output .= '<h3>'. t('Uses') .'</h3>';
-      $output .= '<dl>';
-      $output .= '<dt>'. t('Node Restrictions/Validation') .'</dt>';
-      $output .= '<dd>'. t('TODO: Describe') .'</dd>';
-      $output .= '<dt>'. t('Eligibility Validation') .'</dt>';
-      $output .= '<dd>'. t('Modules can use the Eval API module to add custom rules to nodes and node types that can be used to determine if users are eligible to view nodes or nodes of a specific type.') .'</dd>';
-      $output .= '<dt>'. t('Complex User Stories') .'</dt>';
-      $output .= '<dd>'. t('TODO: Describe') .'</dd>';
-      $output .= '</dl>';
+      $output .= '<ul>';
+      $output .= '<li>'. t('Node Restrictions/Validation') .'</li>';
+      $output .= '<li>'. t('Eligibility Validation') .'</li>';
+      $output .= '<li>'. t('Complex User Stories') .'</li>';
+      $output .= '</ul>';
 
       return $output;
 
