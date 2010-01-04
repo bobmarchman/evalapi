@@ -34,7 +34,7 @@ function evalapi_admin_settings_form() {
   $form['evalapi_enable_content_types']['evalapi_content_types'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Enable Content Types'),
-    '#description' => t('Check the content types youw wish enable.'),
+    '#description' => t('Check the content types you wish enable.'),
     '#options' => $options,
     '#default_value' => variable_get('evalapi_content_types', array()),
   );
