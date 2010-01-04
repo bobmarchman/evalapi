@@ -456,6 +456,24 @@ function evalapi_node_type($op, $info) {
 
 
 /**
+ * Implementation of hook_evalapi_handler().
+ *
+ * @see _evalapi_default_handler()
+ */
+function evalapi_evalapi_handler() {
+  return array(
+    'evalapi' => array(
+      'name' => t('Default'),
+      'callback' => '_evalapi_default_handler',
+    ),
+  );
+}
+
+
+
+
+
+/**
  * Implementation of hook_node_form_sidebar().
  *
  * @see hook_node_form_sidebar()
@@ -469,23 +487,6 @@ function evalapi_node_form_sidebar($form) {
   else {
     return array();
   }
-}
-
-
-
-
-/**
- * Implementation of hook_evalapi_handler().
- *
- * @see _evalapi_default_handler()
- */
-function evalapi_evalapi_handler() {
-  return array(
-    'evalapi' => array(
-      'name' => t('Default'),
-      'callback' => '_evalapi_default_handler',
-    ),
-  );
 }
 
 
