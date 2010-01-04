@@ -61,7 +61,7 @@ function evalapi_help($path, $arg) {
  * Implementation of hook_perm().
  */
 function evalapi_perm() {
-  return array('use php for evaluation criteria', 'administrate eval api');
+  return array('use php for evalapi criteria', 'administrate evalapi', 'use evalapi debug mode');
 }
 
 
@@ -80,7 +80,7 @@ function evalapi_menu() {
     'title' => 'Eval API Configuration',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('evalapi_admin_settings_form'),
-    'access arguments' => array('administer nodes'),
+    'access arguments' => array('administrate evalapi'),
     'file' => 'includes/evalapi.admin.inc',
   );
 
@@ -105,7 +105,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
         '#collapsed' => TRUE,
       );
 
-      if (user_access('use php for evaluation criteria')) {
+      if (user_access('use php for evalapi criteria')) {
         $form['evalapi']['evalapi_eval_code'] = array(
           '#type' => 'fieldset',
           '#title' => t('PHP Code'),
@@ -117,7 +117,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
         $form['evalapi']['evalapi_eval_code']['evalapi_code'] = array(
           '#type' => 'textarea',
           '#title' => t('Code'),
-          '#description' => '<p>'. t('You should <strong>NOT</strong> include &lt;?php ?&gt; tags. Code is expected to return a keyed array like the following:') .'</p>
+          '#description' => '<p>'. t('You should NOT include &lt;?php ?&gt; tags. Code is expected to return a keyed array like the following:') .'</p>
 <pre>
   return array(
     \'foo\' =&gt; TRUE,
@@ -205,7 +205,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
         '#collapsed' => TRUE,
       );
 
-      if (user_access('use php for evaluation criteria')) {
+      if (user_access('use php for evalapi criteria')) {
         $form['evalapi']['evalapi_node_type_code'] = array(
           '#type' => 'fieldset',
           '#title' => t('Evaluation Code'),
@@ -217,7 +217,7 @@ function evalapi_form_alter(&$form, $form_state, $form_id) {
         $form['evalapi']['evalapi_node_type_code']['evalapi_code'] = array(
           '#type' => 'textarea',
           '#title' => t('PHP Code'),
-          '#description' => '<p>'. t('You should <strong>NOT</strong> include &lt;?php ?&gt; tags. Code is expected to return a keyed array like the following:') .'</p>
+          '#description' => '<p>'. t('You should NOT include &lt;?php ?&gt; tags. Code is expected to return a keyed array like the following:') .'</p>
 <pre>
   return array(
     \'some_value\' =&gt; TRUE,
@@ -264,7 +264,7 @@ function evalapi_action_info() {
       'type' => 'node',
       'configurable' => FALSE,
       'hooks' => array(
-        'nodeapi' => array('presave', 'insert', 'update', 'delete', 'view'),
+        'nodeapi' => array('view'),
       ),
     ),
   );
@@ -305,25 +305,40 @@ function evalapi_nodeapi(&$node, $op) {
 
   if (_evalapi_is_enabled_content_type($node->type)) {
     switch ($op) {
+      case 'view':
+        // check to see if the Eval API action is assigned to a trigger
+        $trigger_assigned = db_result(db_query("SELECT t.aid FROM {trigger_assignments} t WHERE t.aid = 'evalapi_evaluate_action'"));
+        
+        // if the trigger module is disabled or the action is not assigned to a
+        // trigger, fallback to calling _evalapi_evaluate() just as the action
+        // would do if it were assigned.
+        if (!module_exists('trigger') || empty($trigger_assigned)) {
+          _evalapi_evaluate($node, FALSE);
+        }
+        break;
+
+
       case 'insert':
         global $user;
 
         $record = new stdClass();
         $record->nid = $node->nid;
         $record->uid = $user->uid;
-        $record->code = isset($node->evalapi_code) && user_access('use php for evaluation criteria') ? $node->evalapi_code : NULL;
+        $record->code = isset($node->evalapi_code) && user_access('use php for evalapi criteria') ? $node->evalapi_code : NULL;
         $record->handler = $node->evalapi_handler;
         $record->overrides = $node->evalapi_edit_criteria;
         $record->created = time();
         $record->changed = time();
+        
+        $log_args = array('%title' => $node->title, '%nid' => $node->nid);
 
         if (drupal_write_record('evalapi', $record) === SAVED_NEW) {
-          $message = '<p>'. t('Saved Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
-          drupal_set_message($message);
+          watchdog('evalapi', 'Saved Eval API data for node %title [%nid]', $log_args, WATCHDOG_NOTICE);
+          drupal_set_message(t('Saved Eval API data for node %title [%nid]', $log_args));
         }
         else {
-          $message = '<p>'. t('Unable to save Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
-          drupal_set_message($message, 'error');
+          watchdog('evalapi', 'Unable to save Eval API data for node %title [%nid]', $log_args, WATCHDOG_ERROR);
+          drupal_set_message(t('Unable to save Eval API data for node %title [%nid]', $log_args), 'error');
         }
         break;
 
@@ -334,35 +349,37 @@ function evalapi_nodeapi(&$node, $op) {
         $record = new stdClass();
         $record->nid = $node->nid;
         $record->uid = $user->uid;
-        $record->code = isset($node->evalapi_code) && user_access('use php for evaluation criteria') ? $node->evalapi_code : NULL;
+        $record->code = isset($node->evalapi_code) && user_access('use php for evalapi criteria') ? $node->evalapi_code : NULL;
         $record->handler = $node->evalapi_handler;
         $record->overrides = $node->evalapi_edit_criteria;
         $record->changed = time();
+
+        $log_args = array('%title' => $node->title, '%nid' => $node->nid);
 
         // ensure node exists in evalapi table before attempting to update
         $exists = db_result(db_query("SELECT e.nid FROM {evalapi} e WHERE e.nid = %d", $node->nid));
 
         if (empty($exists)) {
           $record->created = time();
-
+          
           if (drupal_write_record('evalapi', $record) === SAVED_NEW) {
-            $message = '<p>'. t('Saved Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
-            drupal_set_message($message);
+            watchdog('evalapi', 'Saved Eval API data for node %title [%nid]', $log_args, WATCHDOG_NOTICE);
+            drupal_set_message(t('Saved Eval API data for node %title [%nid]', $log_args));
           }
           else {
-            $message = '<p>'. t('Unable to save Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
-            drupal_set_message($message, 'error');
+            watchdog('evalapi', 'Unable to save Eval API data for node %title [%nid]', $log_args, WATCHDOG_ERROR);
+            drupal_set_message(t('Unable to save Eval API data for node %title [%nid]', $log_args), 'error');
           }
         }
         else {
           if (drupal_write_record('evalapi', $record, 'nid') === SAVED_UPDATED) {
-            $message = '<p>'. t('Updated Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
-            drupal_set_message($message);
+            watchdog('evalapi', 'Updated Eval API data for node %title [%nid]', $log_args, WATCHDOG_NOTICE);
+            drupal_set_message(t('Updated Eval API data for node %title [%nid]', $log_args));
           }
           else {
-            $message = '<p>'. t('Unable to update Eval API data for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
-            drupal_set_message($message, 'error');
-          }
+            watchdog('evalapi', 'Unable to update Eval API data for node %title [%nid]', $log_args, WATCHDOG_ERROR);
+            drupal_set_message(t('Unable to update Eval API data for node %title [%nid]', $log_args), 'error');
+          }          
         }
         break;
 

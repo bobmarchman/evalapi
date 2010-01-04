@@ -202,9 +202,9 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
     // if DEBUG mode is enabled, print out the contents of the evaluation criteria array
     $debug_enabled = variable_get('evalapi_enable_debug', FALSE);
 
-    if ($debug_enabled && user_access('administrate eval api')) {
-      $dbg_message  = '<p><strong>'. t('***** [Eval API: DEBUGGING enabled] *****') .'</strong></p>';
-      $dbg_message .= '<p>'. t('Evaluation Criteria for Node [nid:!nid]', array('!nid' => $node->nid)) .'</p>';
+    if ($debug_enabled && user_access('use evalapi debug mode')) {
+      $dbg_message  = '<p><strong>'. t('Eval API: DEBUGGING enabled') .'</strong></p>';
+      $dbg_message .= '<p>'. t('Evaluation Criteria for node %title [%nid]', array('%title' => $node->title, '%nid' => $node->nid)) .'</p>';
       drupal_set_message($dbg_message);
 
       // check for devel module so we can use krumo goodness, if available:
@@ -250,8 +250,11 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
 
       // store the results of the evaluation criteria in the current user’s session
       $_SESSION[$key] = $eval_value;
+      
+      // and also store the results in the node object itself
+      $node->evalapi[$key] = $eval_value;
 
-      if ($debug_enabled && user_access('administrate eval api')) {
+      if ($debug_enabled && user_access('use evalapi debug mode')) {
         if ($eval_value) {
           $value = 'TRUE';
         }
