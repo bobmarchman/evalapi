@@ -167,7 +167,7 @@ function evalapi_example_evalapi_handler() {
 function evalapi_example_evalapi_handler_alter(&$handlers) {
   global $user;
 
-  if (isset($handlers['evalapi_example']) && $user->uid == 1) {
+  if (isset($handlers['evalapi_example'])) {
     $handlers['evalapi_example']['name'] = t('Eval API Example: Altered');
   }
 }
