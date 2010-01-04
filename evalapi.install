@@ -46,7 +46,7 @@ function evalapi_uninstall() {
  * Implementation of hook_enable().
  */
 function evalapi_enable() {
-  $max = db_result(db_query("SELECT weight FROM {system} WHERE type = 'module' ORDER BY weight ASC LIMIT 1"));
+  $max = db_result(db_query_range("SELECT weight FROM {system} WHERE type = 'module' ORDER BY weight DESC", array(), 0, 1));
   $weight = $max > 10000 ? $max + 1 : 10000;
   db_query("UPDATE {system} SET weight = %d WHERE name = 'evalapi' AND type = 'module'", $weight);
 }
