@@ -126,7 +126,7 @@ function hook_evalapi_handler() {
  */
 function hook_evalapi_handler_alter(&$handlers) {
   if (isset($handlers['foo'])) {
-    $handlers['foo']['callback'] = 'mymodule_evalapi_handler_callback';
+    $handlers['foo']['title'] = t('Bar');
   }
 }
 
