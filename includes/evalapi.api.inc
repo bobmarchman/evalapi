@@ -188,7 +188,8 @@ function _evalapi(&$node) {
  * @param (bool) $return
  *   - If set to TRUE, retrieve the evaluation criteria array and return it.
  *   - If set to FALSE, do not return the evaluation criteria array, but instead
- *     evaluate it and store the results in the current user’s session.
+ *     evaluate it and store the results in the current user’s session as well
+ *     as in the node object itself.
  * @return
  *   - If $return is TRUE, this node’s evaluation criteria array.
  *   - If $return is FALSE, return nothing.
