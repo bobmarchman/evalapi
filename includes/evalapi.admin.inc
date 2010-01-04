@@ -25,10 +25,16 @@ function evalapi_admin_settings_form() {
     }
   }
 
-  $form['evalapi_content_types'] = array(
+  $form['evalapi_enable_content_types'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Enable Content Types'),
+    '#description' => t('Choose which content types should be enabled to use the Eval API.'),    
+  );
+  
+  $form['evalapi_enable_content_types']['evalapi_content_types'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Enable Content Types'),
-    '#description' => t('Choose which content types should be enabled to use the Eval API.'),
+    '#description' => t('Check the content types youw wish enable.'),
     '#options' => $options,
     '#default_value' => variable_get('evalapi_content_types', array()),
   );
@@ -43,26 +49,38 @@ function evalapi_admin_settings_form() {
     $help = '';
   }
 
-  $form['evalapi_default_handler'] = array(
+  $form['evalapi_handler'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Choose Default Handler'),
+    '#description' => $help . t('Choose the default method for evaluating a node’s Eval API criteria.'),    
+  );
+  
+  $form['evalapi_handler']['evalapi_default_handler'] = array(
     '#type' => 'select',
     '#title' => t('Default Evaluation Method'),
-    '#description' => $help . t('Choose the default method for evaluating a node’s Eval API criteria.'),
+    '#description' => t('Select a default evaluation handler from the list.'),
     '#options' => $handlers,
     '#default_value' => variable_get('evalapi_default_handler', '_evalapi_default_handler'),
   );
 
-  $form['evalapi_enable_debug'] = array(
+  $form['evalapi_misc_options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Configure Miscellaneous Options'),
+    '#description' => t('Various other Eval API settings.'),
+  );
+  
+  $form['evalapi_misc_options']['evalapi_enable_debug'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Enable Debugging'),
+    '#title' => t('Enable Debug Mode'),
     '#description' => t('When enabled, prints out debugging information when viewing Eval API-enabled nodes.'),
     '#default_value' => variable_get('evalapi_enable_debug', FALSE),
   );
 
   if (module_exists('admin')) {
-    $form['evalapi_use_admin_sidebar'] = array(
+    $form['evalapi_misc_options']['evalapi_use_admin_sidebar'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Place Eval API PHP code in node add/edit form sidebar.'),
-      '#description' => t('If you have enabled the Admin module, you can optionally choose to place the textarea field for a node’s Eval API PHP code in the sidebar of node add/edit forms. When disabled, the textarea will still appear as a separate fieldset on the form.'),
+      '#title' => t('Admin module: Place Eval API PHP code fieldset in node add/edit form sidebar.'),
+      '#description' => t('If you have enabled the Admin module, you can optionally choose to place the fieldset for a node’s Eval API PHP code in the sidebar of node add/edit forms. When disabled, the fieldset will still appear on the form.'),
       '#default_value' => variable_get('evalapi_use_admin_sidebar', FALSE),
     );
   }
