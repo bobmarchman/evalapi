@@ -305,7 +305,7 @@ function evalapi_nodeapi(&$node, $op) {
       case 'view':
         // check to see if the Eval API action is assigned to a trigger
         $trigger_assigned = db_result(db_query("SELECT t.aid FROM {trigger_assignments} t WHERE t.aid = 'evalapi_evaluate_action'"));
-        
+
         // if the trigger module is disabled or the action is not assigned to a
         // trigger, fallback to calling _evalapi_evaluate() just as the action
         // would do if it were assigned.
@@ -326,7 +326,7 @@ function evalapi_nodeapi(&$node, $op) {
         $record->overrides = $node->evalapi_edit_criteria;
         $record->created = time();
         $record->changed = time();
-        
+
         $log_args = array('%title' => $node->title, '%nid' => $node->nid);
 
         if (drupal_write_record('evalapi', $record) === SAVED_NEW) {
@@ -358,7 +358,7 @@ function evalapi_nodeapi(&$node, $op) {
 
         if (empty($exists)) {
           $record->created = time();
-          
+
           if (drupal_write_record('evalapi', $record) === SAVED_NEW) {
             watchdog('evalapi', 'Saved Eval API data for node %title [%nid]', $log_args, WATCHDOG_NOTICE);
             drupal_set_message(t('Saved Eval API data for node %title [%nid]', $log_args));
@@ -376,7 +376,7 @@ function evalapi_nodeapi(&$node, $op) {
           else {
             watchdog('evalapi', 'Unable to update Eval API data for node %title [%nid]', $log_args, WATCHDOG_ERROR);
             drupal_set_message(t('Unable to update Eval API data for node %title [%nid]', $log_args), 'error');
-          }          
+          }
         }
         break;
 

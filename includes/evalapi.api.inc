@@ -251,7 +251,7 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
 
       // store the results of the evaluation criteria in the current user’s session
       $_SESSION[$key] = $eval_value;
-      
+
       // and also store the results in the node object itself
       $node->evalapi[$key] = $eval_value;
 
