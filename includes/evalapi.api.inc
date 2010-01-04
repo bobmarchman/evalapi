@@ -244,7 +244,7 @@ function _evalapi_evaluate(&$node, $return = TRUE) {
         }
       }
 
-      $eval_value = _evalapi_get_eval_value($eval_criteria, $eval_handler);
+      $eval_value = (bool) _evalapi_get_eval_value($eval_criteria, $eval_handler);
 
       // create a unique session array key for this specific node
       $key = 'evalapi_eval_value_'. $node->nid;
