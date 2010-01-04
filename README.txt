@@ -175,7 +175,7 @@ NOTE: It is not required to pass the evaluation criteria as a parameter to the
       own evaluation handlers is that a boolean value is returned from the
       callback function.
 
-It should be noted that the Eval API does not provide the means for taking
+It should also be noted that the Eval API does not provide the means for taking
 action based on a node’s evaluation. It simply provides the mechanism to define
 the criteria to be evaluated and the method of evaluation. Other module’s are
 responsible for determining what to do with the evaluated criteria.

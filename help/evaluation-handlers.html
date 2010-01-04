@@ -3,9 +3,10 @@ On the subject of evaluation handlers, it is very simple for a module to define 
 
 There are two parts to this process:
 
-1. Inform the <strong>Eval API</strong> module that you are defining a new evaluation handler by implementing hook_evalapi_handler(). This is simply a function that returns an array with information about the handler.
-
-2. Define a callback function that will evaluate a node’s evaluation criteria and return a boolean result.
+<ol>
+  <li>Inform the <strong>Eval API</strong> module that you are defining a new evaluation handler by implementing hook_evalapi_handler(). This is simply a function that returns an array with information about the handler.</li>
+  <li>Define a callback function that will evaluate a node’s evaluation criteria and return a boolean result.</li>
+</ol>
 
 Modules can optionally define as many evaluation handlers as they like.
 
@@ -81,9 +82,9 @@ function _evalapi_default_handler(&$eval_criteria) {
 
 It takes a reference to the evaluation criteria array and returns a boolean.
 
-<strong>NOTE:</strong> It is not required to pass the evaluation criteria as a parameter to the handler function. All that is required of module’s implementing their own evaluation handlers is that a boolean value is returned from the callback function.
+<blockquote><strong>NOTE:</strong> <em>It is not required to pass the evaluation criteria as a parameter to the handler function. All that is required of module’s implementing their own evaluation handlers is that a boolean value is returned from the callback function.</em></blockquote>
 
-It should be noted that the <strong>Eval API</strong> does not provide the means for taking action based on a node’s evaluation. It simply provides the mechanism to define the criteria to be evaluated and the method of evaluation. Other module’s are responsible for determining what to do with the evaluated criteria.
+It should also be noted that the <strong>Eval API</strong> does not provide the means for taking action based on a node’s evaluation. It simply provides the mechanism to define the criteria to be evaluated and the method of evaluation. Other module’s are responsible for determining what to do with the evaluated criteria.
 
 Since a node’s evaluation criteria is dynamic, it is not stored in the database, but rather in the current user’s session and the node object.
 
