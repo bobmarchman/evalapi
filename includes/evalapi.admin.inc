@@ -28,7 +28,7 @@ function evalapi_admin_settings_form() {
   $form['evalapi_enable_content_types'] = array(
     '#type' => 'fieldset',
     '#title' => t('Enable Content Types'),
-    '#description' => t('Choose which content types should be enabled to use the Eval API.'),    
+    '#description' => t('Choose which content types should be enabled to utilize Eval API.'),    
   );
   
   $form['evalapi_enable_content_types']['evalapi_content_types'] = array(
