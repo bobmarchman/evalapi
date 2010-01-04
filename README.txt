@@ -201,7 +201,10 @@ USAGE
 -----
 
 Included is the Eval API Example module that demonstrates how another module can
-use the Eval API.
+use the Eval API. It creates a new content type: Eval API Example that is
+automatically configured to use the Eval API module. The example module contains
+and simple implementation of each hook the Eval API module provides and also
+includes a sample evaluation handler and callback function.
 
 
 EXAMPLE USE-CASES
@@ -231,3 +234,5 @@ See API.txt for Eval API developer documentation and example hook implementation
 
 github homepage: http://github.com/bobmarchman/evalapi
 github repo:     git://github.com/bobmarchman/evalapi.git
+
+This project is funded by South Central Media http://southcentralmedia.com
