@@ -181,11 +181,16 @@ the criteria to be evaluated and the method of evaluation. Other module’s are
 responsible for determining what to do with the evaluated criteria.
 
 Since a node’s evaluation criteria is dynamic, it is not stored in the database,
-but rather in the current user’s session (for now). Each node that is Eval API
-enabled will store an array in the user’s session, and will look like the
+but rather in the current user’s session and the node object. Each node that is
+Eval API enabled will store an array in the user’s session that looks like the
 following:
 
 evalapi_eval_value_<NID> => <EVALUATED VALUE>
+
+The property’s value that is attached to the node object follows the same format
+and will look like the following:
+
+$node->evalapi['evalapi_eval_value_<NID>] = <EVALUATED VALUE>
 
 Where NID is this nid of the node being evaluated, and EVALUATED VALUE is the
 returned boolean result of the called evaluation handler.
